@@ -27,14 +27,18 @@ void AProceduralSpawner::Tick(float DeltaTime)
 
 FTransform AProceduralSpawner::MakeTransform(int32 IndexX, int32 IndexY)
 {
-	float Area = (LevelGridSize * TileSize) / 2;
+	// Shifts location
+	float ShiftLocation = (LevelGridSize * TileSize) / 2;
 
+	// Gets placement of tile
 	float XTile = IndexX * TileSize;
 	float YTile = IndexY * TileSize;
 
-	float LocationX = XTile - Area;
-	float LocationY = YTile - Area;
+	// Calculates the tile location
+	float LocationX = XTile - ShiftLocation;
+	float LocationY = YTile - ShiftLocation;
 
+	// Randomizes the rotation of the tile to add an interesting effect
 	float RandomZRotation = FMath::RandRange(0, 4) * 90;
 
 	FVector Location = FVector(LocationX, LocationY, 0);

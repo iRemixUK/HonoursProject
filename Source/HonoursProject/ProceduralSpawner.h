@@ -27,6 +27,9 @@ protected:
 
 	UPROPERTY(Category = "Variables", EditAnywhere, BlueprintReadWrite)
 	float TileSize;
+	
+	UFUNCTION(BlueprintCallable)
+    	bool CheckIfWallShouldBeGenerated(int32 IndexX, int32 IndexY);
 
 public:	
 	// Called every frame

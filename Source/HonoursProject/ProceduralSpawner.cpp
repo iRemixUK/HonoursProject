@@ -19,6 +19,18 @@ void AProceduralSpawner::BeginPlay()
 	Super::BeginPlay();
 }
 
+bool AProceduralSpawner::CheckIfWallShouldBeGenerated(int32 IndexX, int32 IndexY)
+{
+	if (IndexX == 0 || IndexX == 9 || IndexY == 0 || IndexY == 9)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 // Called every frame
 void AProceduralSpawner::Tick(float DeltaTime)
 {

@@ -3,6 +3,7 @@
 
 #include "ProceduralSpawner.h"
 
+
 // Sets default values
 AProceduralSpawner::AProceduralSpawner()
 {
@@ -55,7 +56,7 @@ FTransform AProceduralSpawner::MakeTransform(int32 IndexX, int32 IndexY)
 	float RandomZRotation = FMath::RandRange(0, 4) * 90;
 
 	FVector Location = FVector(LocationX, LocationY, 0);
-	FRotator Rotation = FRotator(0,RandomZRotation, 0);
+	FRotator Rotation = FRotator(0,0, 0);
 
 	FTransform Output{Rotation, Location, FVector(1,1,1)};
 	return Output;

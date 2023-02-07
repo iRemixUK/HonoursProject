@@ -11,7 +11,7 @@ AProceduralSpawner::AProceduralSpawner()
 	PrimaryActorTick.bCanEverTick = true;
 
 	LevelGridSize = 9;
-	TileSize = 1000;
+	TileSize = 400;
 }
 
 // Called when the game starts or when spawned

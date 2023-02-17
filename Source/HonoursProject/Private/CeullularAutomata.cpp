@@ -9,6 +9,9 @@ ACeullularAutomata::ACeullularAutomata()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Initialise array
+	Grid[tilemapWidth * tilemapHeight];
+
 }
 
 // Called when the game starts or when spawned
@@ -22,55 +25,53 @@ void ACeullularAutomata::BeginPlay()
 void ACeullularAutomata::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
 }
 
 void ACeullularAutomata::make_noise_grid(int density)
 {
-	noiseGrid[tilemapHeight][tilemapWidth];
-
-	random = FMath::RandRange(1, 100);
-
 	for (int i = 0; i < tilemapHeight; i++)
 	{
 		for (int j = 0; j < tilemapWidth; j++)
 		{
-			if (random > density)
+			int32 random = FMath::RandRange(1, 100);
+
+			if(random > density)
 			{
-				// Turn tile into floor
-				noiseGrid[i][j] = 0;
+				// Set value to floor
+				SetElement(i, j, 0);
 			}
 			else
 			{
-				// Turn tile into wall
-				noiseGrid[i][j] = 1;
+				// Set value to wall
+				SetElement(i, j, 1);
 			}
 		}
 	}
+	
 }
 
 void ACeullularAutomata::apply_cellular_automation(int iterations)
 {
-	for (int i = 0; i < iterations; i++)
+	for (int i = 1; i <= iterations; i++)
 	{
-		int tempGrid[tilemapHeight][tilemapWidth];
-		memcpy(tempGrid, noiseGrid, tilemapHeight*tilemapWidth*sizeof(int));
+		FTileStruct tempGrid[400];
+		memcpy(tempGrid, Grid, sizeof(Grid));
 
-		for (int j = 0; j < tilemapHeight; j++)
+		for (int j = 1; j < tilemapHeight; j++)
 		{
-			for (int k = 0; k < tilemapWidth; k++)
+			for (int k = 1; k < tilemapWidth; k++)
 			{
-				int neighbourWallCount = 0;
+				int32 neighbourWallCount = 0;
 
-				for(int y = j-1; y < j + 1; y++)
+				for (int y = j - 1; y < j + 1; y++)
 				{
-					for(int x = k-1; y < k + 1; x++)
+					for (int x = k - 1; x < k +1; x++)
 					{
 						if (isWithinMapBounds(x, y))
 						{
-							if (y != j || x != k)
+							if(y != j || x != k)
 							{
-								if(tempGrid[y][x] == 1)
+								if(GetElement(x, y, tempGrid) == 1)
 								{
 									neighbourWallCount++;
 								}
@@ -81,19 +82,19 @@ void ACeullularAutomata::apply_cellular_automation(int iterations)
 							neighbourWallCount++;
 						}
 					}
-
-					if (neighbourWallCount > 4)
-					{
-						noiseGrid[j][k] = 1;
-					}
-					else
-					{
-						noiseGrid[j][k] = 0;
-					}
+				}
+				if (neighbourWallCount > 4)
+				{
+					SetElement(j,k,1);
+				}
+				else
+				{
+					SetElement(j,k,0);
 				}
 			}
 		}
 	}
+	convertArray();
 }
 
 bool ACeullularAutomata::isWithinMapBounds(int x, int y)
@@ -118,6 +119,24 @@ void ACeullularAutomata::print2DArray()
 		}
 	}
 }
+
+void ACeullularAutomata::SetElement(int x, int y, int value)
+{
+	Grid[(tilemapWidth * x) + y].value = value;
+	Grid[(tilemapWidth * x) + y].indexX = x;
+	Grid[(tilemapWidth * x) + y].indexY = y;
+}
+
+int32 ACeullularAutomata::GetElement(int x, int y, FTileStruct GridArray[])
+{
+	return GridArray[(tilemapWidth * x) + y].value;
+}
+
+void ACeullularAutomata::convertArray()
+{
+	FinalGrid.Append(Grid, UE_ARRAY_COUNT(Grid));
+}
+
 
 
 

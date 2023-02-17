@@ -6,6 +6,21 @@
 #include "GameFramework/Actor.h"
 #include "CeullularAutomata.generated.h"
 
+USTRUCT(BlueprintType)
+struct FTileStruct
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Index")
+	int32 indexX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Index")
+	int32 indexY;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile value")
+	int32 value;
+};
+
 UCLASS()
 class HONOURSPROJECT_API ACeullularAutomata : public AActor
 {
@@ -23,20 +38,27 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	int tilemapHeight = 20;
-	int tilemapWidth = 20;
-	int noiseGrid[0][0];
+	const int tilemapHeight = 20;
+	const int tilemapWidth = 20;
 
+	FTileStruct Grid[400];
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Array")
+	TArray<FTileStruct> FinalGrid;
+
+	UFUNCTION(BlueprintCallable)
 	void make_noise_grid(int density);
 
+	UFUNCTION(BlueprintCallable)
 	void apply_cellular_automation(int iterations);
 
 	bool isWithinMapBounds(int x, int y);
 
 	void print2DArray();
-	
 
-	int random= 0;
-	
+	void SetElement(int x, int y, int value);
 
+	int32 GetElement(int x, int y, FTileStruct Grid[]);
+
+	void convertArray();
 };

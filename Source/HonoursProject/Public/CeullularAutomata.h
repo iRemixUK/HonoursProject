@@ -23,7 +23,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-    
+    // Variables needed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
 	int32 gridWidth;
 
@@ -39,6 +39,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
 	int32 wallThreshold;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
+	float TileSize;
+
+	// Functions that will be called in the blueprint
 	UFUNCTION(BlueprintCallable, Category="Cellular Automata")
 	void GenerateLevel();
 
@@ -47,12 +51,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Cellular Automata")
 	void GetGridCoordinates(int32 Index, int32& X, int32& Y);
+
+	UFUNCTION(BlueprintCallable, Category="Cellular Automata")
+	FTransform MakeTransformFromIndex(int32 IndexX, int32 IndexY);
     
 
 private:
-
+	// Grid that will be used
 	TArray<bool> Grid;
 
+	// Functions needed
 	void InitializeGrid();
 	bool GetGridValue(int32 X, int32 Y) const;
 	void SetGridValue(int32 X, int32 Y, bool Value);

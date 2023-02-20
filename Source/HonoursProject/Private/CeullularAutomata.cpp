@@ -15,8 +15,11 @@ ACeullularAutomata::ACeullularAutomata()
 	numIterations = 4;
 
 	// Initialise thresholds
-	threshold = 0.45f;
+	threshold = 45.f;
 	wallThreshold = 4;
+
+	// Size of each tile
+	TileSize = 400;
 }
 
 // Called when the game starts or when spawned
@@ -63,13 +66,33 @@ void ACeullularAutomata::GetGridCoordinates(int32 Index, int32& X, int32& Y)
 	}
 }
 
+FTransform ACeullularAutomata::MakeTransformFromIndex(int32 IndexX, int32 IndexY)
+{
+	// Shifts location
+	float ShiftLocation = TileSize / 2;
+
+	// Gets placement of tile
+	float XTile = IndexX * TileSize;
+	float YTile = IndexY * TileSize;
+
+	// Calculates the tile location
+	float LocationX = XTile - ShiftLocation;
+	float LocationY = YTile - ShiftLocation;
+
+	FVector Location = FVector(LocationX, LocationY, 0);
+	FRotator Rotation = FRotator(0,0, 0);
+
+	FTransform Output{Rotation, Location, FVector(1,1,1)};
+	return Output;
+}
+
 void ACeullularAutomata::InitializeGrid()
 {
 	// Initialize grid and randomly set the values of the grid
 	Grid.Empty(gridWidth * gridHeight);
 	for (int32 i = 0; i < gridWidth * gridHeight; i++)
 	{
-		Grid.Add(FMath::RandRange(0.0f, 1.0f) < threshold);
+		Grid.Add(FMath::RandRange(1.0f, 100.0f) < threshold);
 	}
 }
 

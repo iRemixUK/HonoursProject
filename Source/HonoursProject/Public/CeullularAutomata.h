@@ -6,21 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "CeullularAutomata.generated.h"
 
-USTRUCT(BlueprintType)
-struct FTileStruct
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Index")
-	int32 indexX;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Index")
-	int32 indexY;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile value")
-	int32 value;
-};
-
 UCLASS()
 class HONOURSPROJECT_API ACeullularAutomata : public AActor
 {
@@ -38,27 +23,45 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	const int tilemapHeight = 20;
-	const int tilemapWidth = 20;
+    
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
+	int32 GridWidth;
 
-	FTileStruct Grid[400];
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
+	int32 GridHeight;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Array")
-	TArray<FTileStruct> FinalGrid;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
+	int32 NumIterations;
 
-	UFUNCTION(BlueprintCallable)
-	void make_noise_grid(int density);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
+	float Threshold;
 
-	UFUNCTION(BlueprintCallable)
-	void apply_cellular_automation(int iterations);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
+	int32 WallThreshold;
 
-	bool isWithinMapBounds(int x, int y);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
+	int32 SmoothIterations;
 
-	void print2DArray();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Generation")
+	int32 SmoothThreshold = 4;
 
-	void SetElement(int x, int y, int value);
+	UFUNCTION(BlueprintCallable, Category="Cellular Automata")
+	void GenerateLevel();
 
-	int32 GetElement(int x, int y, FTileStruct Grid[]);
+	UFUNCTION(BlueprintPure, Category="Cellular Automata")
+	TArray<bool> GetGrid() const;
 
-	void convertArray();
+	UFUNCTION(BlueprintCallable, Category="Cellular Automata")
+	void GetGridCoordinates(int32 Index, int32& X, int32& Y);
+    
+
+private:
+
+	TArray<bool> Grid;
+
+	void InitializeGrid();
+	bool GetGridValue(int32 X, int32 Y) const;
+	void SetGridValue(int32 X, int32 Y, bool Value);
+	void GenerateWalls();
+	void SmoothGrid();
 };

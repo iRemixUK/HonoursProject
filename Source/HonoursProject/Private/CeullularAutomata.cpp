@@ -1,17 +1,23 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "CeullularAutomata.h"
 
-// Sets default values
 ACeullularAutomata::ACeullularAutomata()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Initialise array
-	Grid[tilemapWidth * tilemapHeight];
+	// Initialise grid size
+	GridWidth = 30;
+	GridHeight = 30;
 
+	// Initialise number of iterations
+	NumIterations = 2;
+	SmoothIterations = 2;
+
+	// Initialise thresholds
+	Threshold = 0.45f;
+	WallThreshold = 4;
 }
 
 // Called when the game starts or when spawned
@@ -27,115 +33,164 @@ void ACeullularAutomata::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ACeullularAutomata::make_noise_grid(int density)
+void ACeullularAutomata::GenerateLevel()
 {
-	for (int i = 0; i < tilemapHeight; i++)
-	{
-		for (int j = 0; j < tilemapWidth; j++)
-		{
-			int32 random = FMath::RandRange(1, 100);
-
-			if(random > density)
-			{
-				// Set value to floor
-				SetElement(i, j, 0);
-			}
-			else
-			{
-				// Set value to wall
-				SetElement(i, j, 1);
-			}
-		}
-	}
-	
+	// Generate level
+	InitializeGrid();
+	GenerateWalls();
+	SmoothGrid();
 }
 
-void ACeullularAutomata::apply_cellular_automation(int iterations)
+TArray<bool> ACeullularAutomata::GetGrid() const
 {
-	for (int i = 1; i <= iterations; i++)
-	{
-		FTileStruct tempGrid[400];
-		memcpy(tempGrid, Grid, sizeof(Grid));
+	return Grid;
+}
 
-		for (int j = 1; j < tilemapHeight; j++)
+void ACeullularAutomata::GetGridCoordinates(int32 Index, int32& X, int32& Y)
+{
+	// Calculate the x and y coordinates of the cell based on its index
+	X = Index % GridWidth;
+	Y = Index / GridWidth;
+
+	// Check if coordinates are within the grid
+	if (X >= 0 && X < GridWidth && Y >= 0 && Y < GridHeight)
+	{
+		return;
+	}
+	else
+	{
+		// Error check
+		X = -1;
+		Y = -1;
+	}
+}
+
+void ACeullularAutomata::InitializeGrid()
+{
+	// Initialize grid and randomly set the values of the grid
+	Grid.Empty(GridWidth * GridHeight);
+	for (int32 i = 0; i < GridWidth * GridHeight; i++)
+	{
+		Grid.Add(FMath::RandRange(0.0f, 1.0f) < Threshold);
+	}
+}
+
+bool ACeullularAutomata::GetGridValue(int32 X, int32 Y) const
+{
+	// Returns grid value
+	return Grid[X + Y * GridWidth];
+}
+
+void ACeullularAutomata::SetGridValue(int32 X, int32 Y, bool Value)
+{
+	// Sets grid value
+	Grid[X + Y * GridWidth] = Value;
+}
+
+void ACeullularAutomata::GenerateWalls()
+{
+	// For loop that will iterate based on the number of the iterations the user would like
+	for (int32 i = 0; i < NumIterations; i++)
+	{
+		TArray<bool> tempGrid;
+		tempGrid.SetNumUninitialized(GridWidth * GridHeight);
+
+		for (int32 X = 0; X < GridWidth; X++)
 		{
-			for (int k = 1; k < tilemapWidth; k++)
+			for (int32 Y = 0; Y < GridHeight; Y++)
 			{
 				int32 neighbourWallCount = 0;
-
-				for (int y = j - 1; y < j + 1; y++)
+				for (int32 DX = -1; DX <= 1; DX++)
 				{
-					for (int x = k - 1; x < k +1; x++)
+					for (int32 DY = -1; DY <= 1; DY++)
 					{
-						if (isWithinMapBounds(x, y))
+						if (DX == 0 && DY == 0)
 						{
-							if(y != j || x != k)
-							{
-								if(GetElement(x, y, tempGrid) == 1)
-								{
-									neighbourWallCount++;
-								}
-							}
+							continue;
 						}
-						else
+
+						int32 CheckX = X + DX;
+						int32 CheckY = Y + DY;
+
+						if (CheckX < 0 || CheckX >= GridWidth || CheckY < 0 || CheckY >= GridHeight)
+						{
+							neighbourWallCount++;
+						}
+						else if (GetGridValue(CheckX, CheckY))
 						{
 							neighbourWallCount++;
 						}
 					}
 				}
-				if (neighbourWallCount > 4)
+
+				if (neighbourWallCount >= WallThreshold)
 				{
-					SetElement(j,k,1);
+					tempGrid[X + Y * GridWidth] = true;
 				}
 				else
 				{
-					SetElement(j,k,0);
+					tempGrid[X + Y * GridWidth] = false;
 				}
 			}
 		}
-	}
-	convertArray();
-}
 
-bool ACeullularAutomata::isWithinMapBounds(int x, int y)
-{
-	if ((x >=0 && x <= tilemapWidth) && (y >= 0 && y <= tilemapHeight))
-	{
-		return true;
-	}
-	else
-	{
-		return false;
+		Grid = tempGrid;
 	}
 }
 
-void ACeullularAutomata::print2DArray()
+
+void ACeullularAutomata::SmoothGrid()
 {
-	for (int i = 0; i < tilemapHeight; i++)
+	for (int32 i = 0; i < SmoothIterations; i++)
 	{
-		for (int j = 0; j < tilemapWidth; j++)
+		TArray<bool> NextGrid;
+		NextGrid.SetNumUninitialized(GridWidth * GridHeight);
+
+		for (int32 X = 0; X < GridWidth; X++)
 		{
-			
+			for (int32 Y = 0; Y < GridHeight; Y++)
+			{
+				int32 WallCount = 0;
+				for (int32 DX = -1; DX <= 1; DX++)
+				{
+					for (int32 DY = -1; DY <= 1; DY++)
+					{
+						if (DX == 0 && DY == 0)
+						{
+							continue;
+						}
+
+						int32 CheckX = X + DX;
+						int32 CheckY = Y + DY;
+
+						if (CheckX < 0 || CheckX >= GridWidth || CheckY < 0 || CheckY >= GridHeight)
+						{
+							WallCount++;
+						}
+						else if (GetGridValue(CheckX, CheckY))
+						{
+							WallCount++;
+						}
+					}
+				}
+
+				if (WallCount >= SmoothThreshold)
+				{
+					NextGrid[X + Y * GridWidth] = true;
+				}
+				else
+				{
+					NextGrid[X + Y * GridWidth] = false;
+				}
+			}
 		}
+
+		Grid = NextGrid;
 	}
 }
 
-void ACeullularAutomata::SetElement(int x, int y, int value)
-{
-	Grid[(tilemapWidth * x) + y].value = value;
-	Grid[(tilemapWidth * x) + y].indexX = x;
-	Grid[(tilemapWidth * x) + y].indexY = y;
-}
 
-int32 ACeullularAutomata::GetElement(int x, int y, FTileStruct GridArray[])
-{
-	return GridArray[(tilemapWidth * x) + y].value;
-}
 
-void ACeullularAutomata::convertArray()
-{
-	FinalGrid.Append(Grid, UE_ARRAY_COUNT(Grid));
-}
 
 
 

@@ -8,16 +8,15 @@ ACeullularAutomata::ACeullularAutomata()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Initialise grid size
-	GridWidth = 30;
-	GridHeight = 30;
+	gridWidth = 30;
+	gridHeight = 30;
 
 	// Initialise number of iterations
-	NumIterations = 2;
-	SmoothIterations = 2;
+	numIterations = 4;
 
 	// Initialise thresholds
-	Threshold = 0.45f;
-	WallThreshold = 4;
+	threshold = 0.45f;
+	wallThreshold = 4;
 }
 
 // Called when the game starts or when spawned
@@ -38,7 +37,6 @@ void ACeullularAutomata::GenerateLevel()
 	// Generate level
 	InitializeGrid();
 	GenerateWalls();
-	SmoothGrid();
 }
 
 TArray<bool> ACeullularAutomata::GetGrid() const
@@ -49,11 +47,11 @@ TArray<bool> ACeullularAutomata::GetGrid() const
 void ACeullularAutomata::GetGridCoordinates(int32 Index, int32& X, int32& Y)
 {
 	// Calculate the x and y coordinates of the cell based on its index
-	X = Index % GridWidth;
-	Y = Index / GridWidth;
+	X = Index % gridWidth;
+	Y = Index / gridWidth;
 
 	// Check if coordinates are within the grid
-	if (X >= 0 && X < GridWidth && Y >= 0 && Y < GridHeight)
+	if (X >= 0 && X < gridWidth && Y >= 0 && Y < gridHeight)
 	{
 		return;
 	}
@@ -68,54 +66,64 @@ void ACeullularAutomata::GetGridCoordinates(int32 Index, int32& X, int32& Y)
 void ACeullularAutomata::InitializeGrid()
 {
 	// Initialize grid and randomly set the values of the grid
-	Grid.Empty(GridWidth * GridHeight);
-	for (int32 i = 0; i < GridWidth * GridHeight; i++)
+	Grid.Empty(gridWidth * gridHeight);
+	for (int32 i = 0; i < gridWidth * gridHeight; i++)
 	{
-		Grid.Add(FMath::RandRange(0.0f, 1.0f) < Threshold);
+		Grid.Add(FMath::RandRange(0.0f, 1.0f) < threshold);
 	}
 }
 
 bool ACeullularAutomata::GetGridValue(int32 X, int32 Y) const
 {
 	// Returns grid value
-	return Grid[X + Y * GridWidth];
+	return Grid[X + Y * gridWidth];
 }
 
 void ACeullularAutomata::SetGridValue(int32 X, int32 Y, bool Value)
 {
 	// Sets grid value
-	Grid[X + Y * GridWidth] = Value;
+	Grid[X + Y * gridWidth] = Value;
 }
 
 void ACeullularAutomata::GenerateWalls()
 {
 	// For loop that will iterate based on the number of the iterations the user would like
-	for (int32 i = 0; i < NumIterations; i++)
+	for (int32 i = 0; i < numIterations; i++)
 	{
+		// Temporary grid that will store the new state of the grid
 		TArray<bool> tempGrid;
-		tempGrid.SetNumUninitialized(GridWidth * GridHeight);
+		tempGrid.SetNumUninitialized(gridWidth * gridHeight);
 
-		for (int32 X = 0; X < GridWidth; X++)
+		// Iterate over the x direction
+		for (int32 j = 0; j < gridWidth; j++)
 		{
-			for (int32 Y = 0; Y < GridHeight; Y++)
+			// Iterate over the y direction
+			for (int32 k = 0; k < gridHeight; k++)
 			{
+				// Stores the number of neighbours that are walls
 				int32 neighbourWallCount = 0;
-				for (int32 DX = -1; DX <= 1; DX++)
+
+				// These nested for loops will iterate over the 8 neighbouring cells to check whether a wall has been found
+				for (int32 x = -1; x <= 1; x++)
 				{
-					for (int32 DY = -1; DY <= 1; DY++)
+					for (int32 y = -1; y <= 1; y++)
 					{
-						if (DX == 0 && DY == 0)
+						// 0,0 is the current cell so don't include this and skip to the next iteration
+						if (x == 0 && y == 0)
 						{
 							continue;
 						}
 
-						int32 CheckX = X + DX;
-						int32 CheckY = Y + DY;
+						int32 CheckX = j + x;
+						int32 CheckY = k + y;
 
-						if (CheckX < 0 || CheckX >= GridWidth || CheckY < 0 || CheckY >= GridHeight)
+						// If neighbour is outside the bounds of the map this will be a wall
+						if (CheckX < 0 || CheckX >= gridWidth || CheckY < 0 || CheckY >= gridHeight)
 						{
 							neighbourWallCount++;
 						}
+
+						// If neighbour is a wall increment wall count
 						else if (GetGridValue(CheckX, CheckY))
 						{
 							neighbourWallCount++;
@@ -123,72 +131,22 @@ void ACeullularAutomata::GenerateWalls()
 					}
 				}
 
-				if (neighbourWallCount >= WallThreshold)
+				// If neighbour wall count is over or equal to the threshold the current cell will be a wall if not it will be a floor
+				if (neighbourWallCount >= wallThreshold)
 				{
-					tempGrid[X + Y * GridWidth] = true;
+					tempGrid[j + k * gridWidth] = true;
 				}
 				else
 				{
-					tempGrid[X + Y * GridWidth] = false;
+					tempGrid[j + k * gridWidth] = false;
 				}
 			}
 		}
 
+		// Set grid to be the newly generated grid
 		Grid = tempGrid;
 	}
 }
-
-
-void ACeullularAutomata::SmoothGrid()
-{
-	for (int32 i = 0; i < SmoothIterations; i++)
-	{
-		TArray<bool> NextGrid;
-		NextGrid.SetNumUninitialized(GridWidth * GridHeight);
-
-		for (int32 X = 0; X < GridWidth; X++)
-		{
-			for (int32 Y = 0; Y < GridHeight; Y++)
-			{
-				int32 WallCount = 0;
-				for (int32 DX = -1; DX <= 1; DX++)
-				{
-					for (int32 DY = -1; DY <= 1; DY++)
-					{
-						if (DX == 0 && DY == 0)
-						{
-							continue;
-						}
-
-						int32 CheckX = X + DX;
-						int32 CheckY = Y + DY;
-
-						if (CheckX < 0 || CheckX >= GridWidth || CheckY < 0 || CheckY >= GridHeight)
-						{
-							WallCount++;
-						}
-						else if (GetGridValue(CheckX, CheckY))
-						{
-							WallCount++;
-						}
-					}
-				}
-
-				if (WallCount >= SmoothThreshold)
-				{
-					NextGrid[X + Y * GridWidth] = true;
-				}
-				else
-				{
-					NextGrid[X + Y * GridWidth] = false;
-				}
-			}
-		}
-
-		Grid = NextGrid;
-	}
-}
-
 
 
 

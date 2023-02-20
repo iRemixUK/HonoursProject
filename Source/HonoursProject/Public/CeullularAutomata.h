@@ -25,25 +25,19 @@ public:
 
     
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
-	int32 GridWidth;
+	int32 gridWidth;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
-	int32 GridHeight;
+	int32 gridHeight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
-	int32 NumIterations;
+	int32 numIterations;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
-	float Threshold;
+	float threshold;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
-	int32 WallThreshold;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cellular Automata")
-	int32 SmoothIterations;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural Generation")
-	int32 SmoothThreshold = 4;
+	int32 wallThreshold;
 
 	UFUNCTION(BlueprintCallable, Category="Cellular Automata")
 	void GenerateLevel();
@@ -63,5 +57,4 @@ private:
 	bool GetGridValue(int32 X, int32 Y) const;
 	void SetGridValue(int32 X, int32 Y, bool Value);
 	void GenerateWalls();
-	void SmoothGrid();
 };

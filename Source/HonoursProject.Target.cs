@@ -9,7 +9,9 @@ public class HonoursProjectTarget : TargetRules
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
-
+		
+		bUsesSteam = true;
+		
 		ExtraModuleNames.AddRange( new string[] { "HonoursProject" } );
 	}
 }

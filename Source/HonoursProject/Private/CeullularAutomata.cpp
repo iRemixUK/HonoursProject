@@ -171,6 +171,9 @@ void ACeullularAutomata::GenerateWalls()
 	}
 }
 
+// References
+// White Box Dev (2020) Cellular Automata | Procedural Generation | Game Development Tutorial. Available at: https://youtu.be/slTEz6555Ts (Accessed: February 15 2023).
+
 
 
 
